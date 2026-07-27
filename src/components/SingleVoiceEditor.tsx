@@ -26,7 +26,6 @@ export const SingleVoiceEditor: React.FC<SingleVoiceEditorProps> = ({
   const [enhanceStyle, setEnhanceStyle] = useState('expressive and engaging');
 
   const handleApplyPreset = (prefix: string) => {
-    // If text already has a prefix like "Say cheerfully:", replace or prepend
     if (!text.trim()) {
       onChangeText(`${prefix}Hello! Welcome to AI Voice Studio.`);
     } else {
@@ -45,9 +44,9 @@ export const SingleVoiceEditor: React.FC<SingleVoiceEditorProps> = ({
     try {
       const response = await fetch('/api/enhance-script', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'x-gemini-api-key': apiKey
+          'x-gemini-api-key': apiKey,
         },
         body: JSON.stringify({ text, style: enhanceStyle, mode: 'single' }),
       });
@@ -63,31 +62,31 @@ export const SingleVoiceEditor: React.FC<SingleVoiceEditorProps> = ({
   };
 
   return (
-    <div className="space-y-6 bg-[#080808] p-8 rounded-2xl border border-[#1a1a1a] shadow-xl">
+    <div className="space-y-6 bg-white p-5 sm:p-7 rounded-2xl border border-[#e7e9ef] shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-xl font-serif italic text-white tracking-tight">
-            2. Composition Space & Direction
+          <h3 className="text-lg sm:text-xl font-serif italic font-semibold text-[#111827] tracking-tight">
+            2. Composition &amp; Direction
           </h3>
-          <p className="text-[11px] text-[#666] uppercase font-mono tracking-wider mt-1">
-            Add cues like <span className="text-[#9966ff] bg-[#111] px-1.5 py-0.5 rounded border border-[#222]">"Say cheerfully:"</span> or <span className="text-[#ff6699] bg-[#111] px-1.5 py-0.5 rounded border border-[#222]">"Whisper gently:"</span> to direct cadence.
+          <p className="text-[11px] text-[#8a92a6] mt-1 leading-relaxed">
+            Add cues like <span className="text-[#7c3aed] bg-violet-50 px-1.5 py-0.5 rounded border border-violet-100 font-mono">"Say cheerfully:"</span> or <span className="text-[#db2777] bg-pink-50 px-1.5 py-0.5 rounded border border-pink-100 font-mono">"Whisper gently:"</span> to direct cadence.
           </p>
         </div>
 
         <button
           type="button"
           onClick={handleRandomSample}
-          className="inline-flex items-center text-[10px] uppercase tracking-widest font-bold text-[#888] hover:text-white bg-[#111] border border-[#222] hover:border-[#333] px-3.5 py-2 rounded-lg transition-all cursor-pointer self-start sm:self-auto"
+          className="inline-flex items-center justify-center text-[10px] uppercase tracking-widest font-bold text-[#4b5262] hover:text-[#111827] bg-[#f4f5f8] border border-[#e2e5ec] hover:border-[#c9cfdb] px-3.5 py-2 rounded-lg transition-all cursor-pointer self-start sm:self-auto flex-shrink-0"
         >
-          <RefreshCw className="w-3.5 h-3.5 mr-1.5 text-[#9966ff]" />
-          <span>Load Sample Prompt</span>
+          <RefreshCw className="w-3.5 h-3.5 mr-1.5 text-[#7c3aed]" />
+          <span>Load Sample</span>
         </button>
       </div>
 
       {/* Style Presets */}
       <div className="space-y-2">
-        <span className="text-[10px] uppercase tracking-widest text-[#444] font-bold">
-          Quick Emotional Direction Presets:
+        <span className="text-[10px] uppercase tracking-widest text-[#9aa2b1] font-bold">
+          Quick Emotional Direction:
         </span>
         <div className="flex flex-wrap gap-2">
           {STYLE_PRESETS.map((preset) => (
@@ -95,9 +94,9 @@ export const SingleVoiceEditor: React.FC<SingleVoiceEditorProps> = ({
               key={preset.id}
               type="button"
               onClick={() => handleApplyPreset(preset.examplePrefix)}
-              className="inline-flex items-center text-xs font-medium bg-[#111] text-[#888] border border-[#222] hover:border-[#444] hover:text-white hover:bg-[#161616] px-3.5 py-1.5 rounded-full transition-all cursor-pointer"
+              className="inline-flex items-center text-xs font-medium bg-[#f4f5f8] text-[#4b5262] border border-[#e2e5ec] hover:border-[#7c3aed]/40 hover:text-[#111827] hover:bg-violet-50/50 px-3 py-1.5 rounded-full transition-all cursor-pointer"
             >
-              <Sparkles className="w-3 h-3 mr-1.5 text-[#ff6699]" />
+              <Sparkles className="w-3 h-3 mr-1.5 text-[#db2777]" />
               <span>{preset.label}</span>
             </button>
           ))}
@@ -110,46 +109,45 @@ export const SingleVoiceEditor: React.FC<SingleVoiceEditorProps> = ({
           value={text}
           onChange={(e) => onChangeText(e.target.value)}
           rows={5}
-          placeholder="Enter your manuscript here to breathe life into the silence... Example: Say cheerfully with a warm smile: Welcome to AI VOICE STUDIO BY V!"
-          className="w-full rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] p-6 text-base leading-relaxed text-[#d1d1d1] focus:text-white focus:outline-none focus:border-[#333] transition-colors resize-y placeholder:text-[#333] font-sans"
+          placeholder="Enter your manuscript here… Example: Say cheerfully with a warm smile: Welcome to AI Voice Studio!"
+          className="w-full rounded-2xl border border-[#e2e5ec] bg-[#f8f9fb] p-4 sm:p-5 text-base leading-relaxed text-[#1f2430] focus:bg-white focus:outline-none focus:border-[#7c3aed] transition-colors resize-y placeholder:text-[#aab0bd] font-sans"
         />
-
-        <div className="absolute bottom-4 right-4 flex items-center space-x-2">
-          <span className="text-[10px] font-mono text-[#666] bg-[#111] px-2.5 py-1 rounded-md border border-[#222]">
+        <div className="absolute bottom-3 right-3 flex items-center space-x-2">
+          <span className="text-[10px] font-mono text-[#8a92a6] bg-white px-2.5 py-1 rounded-md border border-[#e2e5ec]">
             {text.length} chars
           </span>
         </div>
       </div>
 
       {/* Native Sinhala Pronunciation Indicator */}
-      {(/[\u0D80-\u0DFF]/.test(text) || /sinhala|සිංහල/i.test(text) || ['Aoede', 'Clio', 'Leda', 'Orpheus', 'Pegasus'].includes(selectedVoiceId)) && (
-        <div className="flex items-center justify-between p-3.5 bg-gradient-to-r from-[#00e6cc]/15 to-[#00e6cc]/5 border border-[#00e6cc]/40 rounded-xl text-xs text-[#00e6cc] shadow-sm animate-fadeIn">
+      {(/[඀-෿]/.test(text) || /sinhala|සිංහල/i.test(text) || ['Aoede', 'Clio', 'Leda', 'Orpheus', 'Pegasus'].includes(selectedVoiceId)) && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 bg-teal-50 border border-teal-200 rounded-xl text-xs text-teal-700 animate-fadeIn">
           <div className="flex items-center space-x-2.5">
-            <span className="w-2 h-2 rounded-full bg-[#00e6cc] animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-teal-500 animate-ping" />
             <span className="font-mono font-bold uppercase tracking-wider text-[11px]">
               🇱🇰 Sri Lankan Sinhala Accent Engine Active
             </span>
           </div>
-          <span className="text-[11px] text-[#bbb] font-sans hidden sm:inline">
-            Auto-enforcing pure Sinhalese phonology & suppressing Tamil/foreign accents
+          <span className="text-[11px] text-teal-600 font-sans hidden sm:inline">
+            Enforcing pure Sinhalese phonology
           </span>
         </div>
       )}
 
       {/* AI Script Director Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-gradient-to-br from-[#111] to-[#0a0a0a] border border-[#222] rounded-xl">
-        <div className="flex items-center space-x-2.5 text-xs text-[#888]">
-          <Wand2 className="w-4 h-4 text-[#9966ff] flex-shrink-0" />
-          <span><strong className="font-serif italic text-white text-sm">AI Vocal Director:</strong> Let Gemini rewrite plain text into expressive acting copy.</span>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-gradient-to-br from-violet-50 to-pink-50 border border-violet-100 rounded-xl">
+        <div className="flex items-center space-x-2.5 text-xs text-[#5b6473]">
+          <Wand2 className="w-4 h-4 text-[#7c3aed] flex-shrink-0" />
+          <span><strong className="font-serif italic text-[#111827] text-sm">AI Vocal Director:</strong> Let Gemini rewrite plain text into expressive copy.</span>
         </div>
 
         <div className="flex items-center space-x-2.5 w-full sm:w-auto">
           <select
             value={enhanceStyle}
             onChange={(e) => setEnhanceStyle(e.target.value)}
-            className="text-xs font-mono bg-[#0a0a0a] border border-[#222] text-[#d1d1d1] rounded-lg px-3 py-2 focus:outline-none focus:border-[#444] flex-1 sm:flex-initial"
+            className="text-xs font-mono bg-white border border-[#e2e5ec] text-[#1f2430] rounded-lg px-3 py-2 focus:outline-none focus:border-[#7c3aed] flex-1 sm:flex-initial min-w-0 cursor-pointer"
           >
-            <option value="expressive and engaging">Expressive & Engaging</option>
+            <option value="expressive and engaging">Expressive &amp; Engaging</option>
             <option value="dramatic cinematic movie trailer">Dramatic Movie Trailer</option>
             <option value="warm friendly audio documentary">Friendly Documentary</option>
             <option value="energetic podcast host">Energetic Podcast Intro</option>
@@ -160,17 +158,17 @@ export const SingleVoiceEditor: React.FC<SingleVoiceEditorProps> = ({
             type="button"
             onClick={handleEnhanceScript}
             disabled={isEnhancing || !text.trim()}
-            className="inline-flex items-center justify-center bg-[#1a1a1a] hover:bg-white hover:text-black disabled:opacity-50 text-white text-[10px] font-bold uppercase tracking-wider px-4 py-2 rounded-lg border border-[#333] transition-all shadow-sm cursor-pointer flex-shrink-0"
+            className="inline-flex items-center justify-center bg-[#111827] hover:bg-black disabled:opacity-50 text-white text-[10px] font-bold uppercase tracking-wider px-4 py-2 rounded-lg transition-all shadow-sm cursor-pointer flex-shrink-0"
           >
             {isEnhancing ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
-                <span>Directing...</span>
+                <span>Directing…</span>
               </>
             ) : (
               <>
                 <Sparkles className="w-3.5 h-3.5 mr-1" />
-                <span>Enhance Script</span>
+                <span>Enhance</span>
               </>
             )}
           </button>
@@ -179,27 +177,27 @@ export const SingleVoiceEditor: React.FC<SingleVoiceEditorProps> = ({
 
       {/* Error display */}
       {error && (
-        <div className="flex items-start space-x-2.5 p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-xs font-medium">
+        <div className="flex items-start space-x-2.5 p-3.5 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-medium">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="font-bold">Generation Failed</p>
-            <p className="text-[#aaa]">{error}</p>
+            <p className="text-rose-500">{error}</p>
           </div>
         </div>
       )}
 
       {/* Submit Button */}
-      <div className="pt-2 flex justify-end">
+      <div className="pt-1 flex justify-end">
         <button
           type="button"
           onClick={onGenerate}
           disabled={isGenerating || !text.trim()}
-          className="w-full sm:w-auto inline-flex items-center justify-center bg-white hover:bg-[#eee] active:scale-95 disabled:opacity-50 text-black px-8 py-4 rounded-full font-bold text-xs uppercase tracking-widest shadow-xl shadow-white/5 transition-all duration-200 cursor-pointer"
+          className="w-full sm:w-auto inline-flex items-center justify-center bg-gradient-to-tr from-[#7c3aed] to-[#db2777] hover:opacity-95 active:scale-[0.98] disabled:opacity-50 text-white px-8 py-3.5 rounded-full font-bold text-xs uppercase tracking-widest shadow-lg shadow-violet-500/25 transition-all duration-200 cursor-pointer"
         >
           {isGenerating ? (
             <>
               <Loader2 className="w-4 h-4 mr-2.5 animate-spin" />
-              <span>Synthesizing Audio ({selectedVoiceId})...</span>
+              <span>Synthesizing ({selectedVoiceId})…</span>
             </>
           ) : (
             <>

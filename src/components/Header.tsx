@@ -24,7 +24,7 @@ export const Header: React.FC<HeaderProps> = ({ totalGenerated, apiKey, setApiKe
               <h1 className="text-base sm:text-lg font-serif italic font-bold tracking-tight text-[#111827] truncate">
                 AI Voice Studio
               </h1>
-              <span className="hidden xs:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] uppercase font-mono tracking-wider bg-violet-50 text-[#7c3aed] border border-violet-100">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] uppercase font-mono tracking-wider bg-violet-50 text-[#7c3aed] border border-violet-100">
                 Gemini TTS
               </span>
             </div>

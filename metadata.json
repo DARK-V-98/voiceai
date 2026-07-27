@@ -1,6 +1,6 @@
 {
-  "name": "AI VOICE STUDIO BY V",
-  "description": "Generate expressive single-speaker and multi-speaker AI voices using Google Gemini Text-to-Speech models.",
+  "name": "AI Voice Studio · by eSystemLK",
+  "description": "Generate expressive single-speaker and multi-speaker AI voices using Google Gemini Text-to-Speech models. Clients bring their own Gemini API key. Built by eSystemLK.com.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

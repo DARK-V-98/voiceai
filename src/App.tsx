@@ -13,8 +13,10 @@ import { AudioPlayerCard } from './components/AudioPlayerCard';
 import { HistoryList } from './components/HistoryList';
 import { VoiceId, VoiceModel, DialogueTurn, GeneratedAudioItem } from './types';
 import { GEMINI_VOICES, DEFAULT_DIALOGUE_TURNS, SAMPLE_TEXTS } from './data';
-import { Volume2, Sparkles, Mic, Users, HelpCircle } from 'lucide-react';
+import { HelpCircle, KeyRound } from 'lucide-react';
 import { loadHistoryFromDB, saveItemToDB, deleteItemFromDB, clearAllFromDB } from './utils/storage';
+
+const API_KEY_STORAGE = 'aivs_gemini_api_key';
 
 export default function App() {
   const [mode, setMode] = useState<'single' | 'multi'>('single');
@@ -23,22 +25,42 @@ export default function App() {
   const [multiTurns, setMultiTurns] = useState<DialogueTurn[]>(DEFAULT_DIALOGUE_TURNS);
   const [historyItems, setHistoryItems] = useState<GeneratedAudioItem[]>([]);
   const [selectedAudioItem, setSelectedAudioItem] = useState<GeneratedAudioItem | null>(null);
-  const [apiKey, setApiKey] = useState<string>(''); // Session-only API Key
+  const [apiKey, setApiKey] = useState<string>('');
 
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [previewingId, setPreviewingId] = useState<VoiceId | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Load persisted API key (per-browser convenience for clients using their own key)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(API_KEY_STORAGE);
+      if (saved) setApiKey(saved);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  // Persist API key whenever it changes
+  useEffect(() => {
+    try {
+      if (apiKey) localStorage.setItem(API_KEY_STORAGE, apiKey);
+      else localStorage.removeItem(API_KEY_STORAGE);
+    } catch {
+      /* ignore */
+    }
+  }, [apiKey]);
+
   // Load history from IndexedDB on initial mount
   useEffect(() => {
-    loadHistoryFromDB().then((items) => {
-      if (items && items.length > 0) {
-        setHistoryItems(items);
-        setSelectedAudioItem(items[0]);
-      }
-    }).catch((e) => {
-      console.error('Failed to load history from DB:', e);
-    });
+    loadHistoryFromDB()
+      .then((items) => {
+        if (items && items.length > 0) {
+          setHistoryItems(items);
+          setSelectedAudioItem(items[0]);
+        }
+      })
+      .catch((e) => console.error('Failed to load history from DB:', e));
   }, []);
 
   const addItemToHistory = (newItem: GeneratedAudioItem) => {
@@ -55,15 +77,8 @@ export default function App() {
     try {
       const response = await fetch('/api/generate-voice', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'x-gemini-api-key': apiKey 
-        },
-        body: JSON.stringify({
-          mode: 'single',
-          text: singleText.trim(),
-          voiceName: selectedVoiceId,
-        }),
+        headers: { 'Content-Type': 'application/json', 'x-gemini-api-key': apiKey },
+        body: JSON.stringify({ mode: 'single', text: singleText.trim(), voiceName: selectedVoiceId }),
       });
 
       const data = await response.json();
@@ -101,14 +116,8 @@ export default function App() {
     try {
       const response = await fetch('/api/generate-voice', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'x-gemini-api-key': apiKey 
-        },
-        body: JSON.stringify({
-          mode: 'multi',
-          speakers: multiTurns,
-        }),
+        headers: { 'Content-Type': 'application/json', 'x-gemini-api-key': apiKey },
+        body: JSON.stringify({ mode: 'multi', speakers: multiTurns }),
       });
 
       const data = await response.json();
@@ -150,15 +159,8 @@ export default function App() {
     try {
       const response = await fetch('/api/generate-voice', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'x-gemini-api-key': apiKey 
-        },
-        body: JSON.stringify({
-          mode: 'single',
-          text: voice.previewText,
-          voiceName: voice.id,
-        }),
+        headers: { 'Content-Type': 'application/json', 'x-gemini-api-key': apiKey },
+        body: JSON.stringify({ mode: 'single', text: voice.previewText, voiceName: voice.id }),
       });
 
       const data = await response.json();
@@ -168,7 +170,7 @@ export default function App() {
 
       const newItem: GeneratedAudioItem = {
         id: `preview-${voice.id}-${Date.now()}`,
-        title: `Preview Voice: ${voice.name} (${voice.tone})`,
+        title: `Preview: ${voice.name} (${voice.tone})`,
         timestamp: Date.now(),
         audioData: data.audioData,
         mode: 'single',
@@ -202,36 +204,53 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-[#d1d1d1] font-sans selection:bg-[#9966ff] selection:text-white pb-16">
+    <div className="min-h-screen bg-[#f4f5f8] text-[#1f2430] font-sans flex flex-col">
       <Header totalGenerated={historyItems.length} apiKey={apiKey} setApiKey={setApiKey} />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6">
+        {/* No-key gentle prompt */}
+        {!apiKey && (
+          <div className="flex items-start sm:items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-violet-50 to-pink-50 border border-violet-100 animate-fadeIn">
+            <div className="w-9 h-9 rounded-lg bg-white border border-violet-100 text-[#7c3aed] flex items-center justify-center flex-shrink-0">
+              <KeyRound className="w-5 h-5" />
+            </div>
+            <p className="text-xs sm:text-sm text-[#5b6473] leading-relaxed">
+              <strong className="text-[#111827]">Add your Gemini API key to get started.</strong> Tap
+              <span className="mx-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white border border-violet-100 text-[#7c3aed] font-semibold text-[11px]"><KeyRound className="w-3 h-3" />Add API Key</span>
+              at the top. It stays in your browser and is sent straight to Google.
+            </p>
+          </div>
+        )}
+
         {/* Workspace Title & Mode Selector Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#080808] p-8 rounded-2xl border border-[#1a1a1a] shadow-xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 bg-white p-5 sm:p-6 rounded-2xl border border-[#e7e9ef] shadow-sm">
           <div>
             <div className="flex items-center space-x-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#9966ff] animate-pulse" />
-              <h2 className="text-2xl font-serif italic text-white tracking-tight">
-                {mode === 'single' ? 'Single Voiceover Studio' : 'Multi-Speaker Podcast Studio'}
+              <span className="w-2.5 h-2.5 rounded-full bg-[#7c3aed] animate-pulse" />
+              <h2 className="text-xl sm:text-2xl font-serif italic font-semibold text-[#111827] tracking-tight">
+                {mode === 'single' ? 'Single Voiceover Studio' : 'Multi-Speaker Studio'}
               </h2>
             </div>
-            <p className="text-xs font-mono text-[#888] mt-2 max-w-xl leading-relaxed">
+            <p className="text-xs text-[#8a92a6] mt-2 max-w-xl leading-relaxed">
               {mode === 'single'
-                ? 'Synthesize natural, highly expressive speech with granular tone control, emotional direction, and 24kHz uncompressed audio output.'
-                : 'Build engaging dialogues, interviews, and podcasts. Gemini automatically transitions timbres and cadence between speakers.'}
+                ? 'Synthesize natural, expressive speech with granular tone control and 24kHz uncompressed audio output.'
+                : 'Build engaging dialogues, interviews, and podcasts. Gemini transitions timbres between speakers automatically.'}
             </p>
           </div>
 
-          <ModeSelector mode={mode} onSelectMode={(newMode) => {
-            setMode(newMode);
-            setError(null);
-          }} />
+          <ModeSelector
+            mode={mode}
+            onSelectMode={(newMode) => {
+              setMode(newMode);
+              setError(null);
+            }}
+          />
         </div>
 
         {/* Studio Editor Section */}
         {mode === 'single' ? (
           <div className="space-y-6">
-            <div className="bg-[#080808] p-8 rounded-2xl border border-[#1a1a1a] shadow-xl">
+            <div className="bg-white p-5 sm:p-7 rounded-2xl border border-[#e7e9ef] shadow-sm">
               <VoiceSelector
                 selectedVoiceId={selectedVoiceId}
                 onSelectVoice={setSelectedVoiceId}
@@ -264,20 +283,16 @@ export default function App() {
         {/* Audio Player & Session History Section */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <div className="lg:col-span-7">
-            <div className="space-y-2 mb-2">
-              <h3 className="text-xs font-mono uppercase tracking-widest text-[#666] px-1 font-bold">
-                Active Audio Workspace
-              </h3>
-            </div>
+            <h3 className="text-[11px] font-mono uppercase tracking-widest text-[#9aa2b1] px-1 font-bold mb-2">
+              Active Audio Workspace
+            </h3>
             <AudioPlayerCard item={selectedAudioItem} />
           </div>
 
           <div className="lg:col-span-5">
-            <div className="space-y-2 mb-2">
-              <h3 className="text-xs font-mono uppercase tracking-widest text-[#666] px-1 font-bold">
-                Recordings Archive
-              </h3>
-            </div>
+            <h3 className="text-[11px] font-mono uppercase tracking-widest text-[#9aa2b1] px-1 font-bold mb-2">
+              Recordings Archive
+            </h3>
             <HistoryList
               items={historyItems}
               selectedItem={selectedAudioItem}
@@ -289,26 +304,47 @@ export default function App() {
         </div>
 
         {/* Helpful Tips Card */}
-        <div className="bg-[#080808] rounded-2xl p-6 border border-[#1a1a1a] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#e7e9ef] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
           <div className="flex items-start space-x-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#111] border border-[#222] text-[#9966ff] flex items-center justify-center flex-shrink-0 mt-0.5">
+            <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-100 text-[#7c3aed] flex items-center justify-center flex-shrink-0 mt-0.5">
               <HelpCircle className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider">
+              <h4 className="text-xs font-mono font-bold text-[#111827] uppercase tracking-wider">
                 Pro Vocal Direction Tips
               </h4>
-              <p className="text-xs font-sans text-[#888] mt-1 max-w-2xl leading-relaxed">
-                Gemini TTS responds directly to natural language phrasing! Prefix lines with <span className="text-[#9966ff] bg-[#111] px-1.5 py-0.5 rounded border border-[#222]">"Say cheerfully:"</span>, <span className="text-[#ff6699] bg-[#111] px-1.5 py-0.5 rounded border border-[#222]">"In a deep dramatic whisper:"</span>, or <span className="text-[#9966ff] bg-[#111] px-1.5 py-0.5 rounded border border-[#222]">"With confident emphasis:"</span> to instantly shape emotional inflection and cadence.
+              <p className="text-xs font-sans text-[#8a92a6] mt-1 max-w-2xl leading-relaxed">
+                Gemini TTS responds to natural language! Prefix lines with <span className="text-[#7c3aed] bg-violet-50 px-1.5 py-0.5 rounded border border-violet-100">"Say cheerfully:"</span>, <span className="text-[#db2777] bg-pink-50 px-1.5 py-0.5 rounded border border-pink-100">"In a deep dramatic whisper:"</span>, or <span className="text-[#7c3aed] bg-violet-50 px-1.5 py-0.5 rounded border border-violet-100">"With confident emphasis:"</span> to shape emotional inflection.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 text-[10px] font-mono uppercase tracking-widest text-[#666] bg-[#111] px-3 py-1.5 rounded-full border border-[#222] self-end md:self-auto flex-shrink-0">
-            <span>Powered by Gemini 3.1 Flash TTS</span>
+          <div className="flex items-center space-x-2 text-[10px] font-mono uppercase tracking-widest text-[#9aa2b1] bg-[#f4f5f8] px-3 py-1.5 rounded-full border border-[#e7e9ef] self-start md:self-auto flex-shrink-0">
+            <span>Powered by Gemini TTS</span>
           </div>
         </div>
       </main>
+
+      {/* Footer — eSystemLK branding */}
+      <footer className="border-t border-[#e7e9ef] bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-[#8a92a6]">
+            <span>© {new Date().getFullYear()} AI Voice Studio</span>
+          </div>
+          <a
+            href="https://esystemlk.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-2 text-xs font-semibold text-[#5b6473] hover:text-[#7c3aed] transition-colors"
+          >
+            <span className="text-[#9aa2b1] group-hover:text-[#5b6473]">Designed &amp; developed by</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-md bg-gradient-to-tr from-[#7c3aed] to-[#db2777] text-white text-[10px] font-bold flex items-center justify-center">e</span>
+              <span className="font-serif italic text-sm text-[#111827] group-hover:text-[#7c3aed]">eSystemLK.com</span>
+            </span>
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }
