@@ -1,0 +1,6 @@
+{
+  "name": "AI VOICE STUDIO BY V",
+  "description": "Generate expressive single-speaker and multi-speaker AI voices using Google Gemini Text-to-Speech models.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
