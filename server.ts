@@ -87,7 +87,7 @@ async function startServer() {
       const { mode = 'single', text, voiceName = 'Kore', speakers } = req.body;
 
       // Model Failover List
-      const ttsModels = ['gemini-3.1-flash-tts-preview', 'gemini-2.0-flash-exp', 'gemini-1.5-flash'];
+      const ttsModels = ['gemini-2.5-flash-preview-tts', 'gemini-2.5-pro-preview-tts'];
       let lastError: any = null;
 
       if (mode === 'single') {
@@ -197,7 +197,7 @@ async function startServer() {
       const { text, style = 'expressive', mode = 'single' } = req.body;
       if (!text || !text.trim()) return res.status(400).json({ error: 'Please provide text.' });
 
-      const textModels = ['gemini-2.0-flash-exp', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+      const textModels = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.5-pro'];
       let lastError: any = null;
 
       for (const modelId of textModels) {
